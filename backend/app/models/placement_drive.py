@@ -18,7 +18,7 @@ class PlacementDrive(db.Model):
 
     application_deadline = db.Column(db.Date, nullable=False)
 
-    status = db.Column(db.String(20), default="Pending")
+    status = db.Column(db.String(20), default="Open")
 
     applications = db.relationship("Application", backref="placement_drive", lazy=True)
 

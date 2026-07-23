@@ -1,3 +1,4 @@
+from werkzeug.security import generate_password_hash
 from app import create_app, db
 from app.models import User
 
@@ -9,9 +10,10 @@ with app.app_context():
     if not admin:
         admin = User(
             email="admin@placement.com",
-            password="admin123",
             role="admin"
         )
+
+        admin.set_password("admin123")
         db.session.add(admin)
         db.session.commit()
         print("Admin created successfully!")

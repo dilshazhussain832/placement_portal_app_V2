@@ -22,6 +22,8 @@ class Student(db.Model):
 
     resume = db.Column(db.String(255))
 
+    approved = db.Column(db.Boolean, default=True)
+
     applications = db.relationship("Application", backref="student", lazy=True)
 
     placements = db.relationship("Placement", backref="student", lazy=True)
