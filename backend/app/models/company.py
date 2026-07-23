@@ -19,4 +19,5 @@ class Company(db.Model):
     hr_email = db.Column(db.String(120), nullable=False)
 
     approval_status = db.Column(db.String(20), default="Pending")
+    is_active = db.Column(db.Boolean, default=True)
     placement_drives = db.relationship("PlacementDrive", backref="company", lazy=True)
