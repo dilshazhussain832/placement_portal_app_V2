@@ -9,3 +9,6 @@ class Config:
     SQLALCHEMY_DATABASE_URI = "sqlite:///" + os.path.join(BASE_DIR, "..", "instance", "placement_portal.db")
 
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+
+    SESSION_COOKIE_SAMESITE = "Lax"
+    SESSION_COOKIE_SECURE = False
