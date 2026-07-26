@@ -84,6 +84,7 @@
             <th>Status</th>
             <th>Approval</th>
             <th>Actions</th>
+            <th>Applicants</th>
           </tr>
         </thead>
 
@@ -144,6 +145,14 @@
               </button>
 
             </td>
+            <td>
+              <button
+                class="btn btn-info btn-sm"
+                @click="loadApplicants(drive)"
+              >
+                View Applicants
+              </button>
+            </td>
 
           </tr>
 
@@ -152,6 +161,109 @@
       </table>
 
     </div>
+    <div
+      v-if="selectedDrive"
+      class="card shadow mt-4 p-4"
+    >
+
+      <h4 class="mb-3">
+        Applicants for {{ selectedDrive.job_title }}
+      </h4>
+
+      <table class="table table-bordered table-hover">
+
+        <thead>
+
+          <tr>
+
+            <th>Name</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Branch</th>
+            <th>CGPA</th>
+            <th>Skills</th>
+            <th>Status</th>
+            <th>Action</th>
+
+          </tr>
+
+        </thead>
+
+        <tbody>
+
+          <tr
+            v-for="applicant in applicants"
+            :key="applicant.application_id"
+          >
+
+            <td>{{ applicant.student_name }}</td>
+            <td>{{ applicant.email }}</td>
+            <td>{{ applicant.phone }}</td>
+            <td>{{ applicant.branch }}</td>
+            <td>{{ applicant.cgpa }}</td>
+            <td>{{ applicant.skills }}</td>
+
+            <td>
+
+              <span
+                v-if="applicant.status === 'Applied'"
+                class="badge bg-primary"
+              >
+                Applied
+              </span>
+
+              <span
+                v-else-if="applicant.status === 'Shortlisted'"
+                class="badge bg-success"
+              >
+                Shortlisted
+              </span>
+
+              <span
+                v-else-if="applicant.status === 'Rejected'"
+                class="badge bg-danger"
+              >
+                Rejected
+              </span>
+
+              <span
+                v-else
+                class="badge bg-secondary"
+              >
+                {{ applicant.status }}
+              </span>
+
+            </td>
+
+            <td>
+
+              <button
+                class="btn btn-success btn-sm me-2"
+                @click="shortlistApplicant(applicant.application_id)"
+              >
+                Shortlist
+              </button>
+
+              <button
+                class="btn btn-danger btn-sm"
+                @click="rejectApplicant(applicant.application_id)"
+              >
+                Reject
+              </button>
+
+            </td>
+
+          </tr>
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+    
+
+
 
   </div>
 </template>
@@ -167,6 +279,8 @@ const salary = ref("");
 const application_deadline = ref("");
 const drives = ref([]);
 const editingDriveId = ref(null);
+const applicants = ref([]);
+const selectedDrive = ref(null);
 
 const createDrive = async () => {
   try {
@@ -283,6 +397,28 @@ const editDrive = (drive) => {
   eligibility.value = drive.eligibility;
   salary.value = drive.salary;
   application_deadline.value = drive.application_deadline;
+};
+
+const loadApplicants = async (drive) => {
+
+  try {
+
+    const response = await api.get(
+      `/company/drive/${drive.id}/applications`
+    );
+
+    applicants.value = response.data;
+    selectedDrive.value = drive;
+
+  } catch (error) {
+
+    alert(
+      error.response?.data?.message ||
+      "Failed to load applicants."
+    );
+
+  }
+
 };
 
 </script>

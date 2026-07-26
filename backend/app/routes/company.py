@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, request, session
 from app import db
-from app.models import Company, PlacementDrive
+from app.models import Company, PlacementDrive, Student, Application, User
 from datetime import datetime
 
 company = Blueprint("company", __name__)
@@ -170,3 +170,69 @@ def toggle_drive_status(drive_id):
         "message": f"Drive is now {drive.status}",
         "status": drive.status
     })
+
+
+@company.route("/drive/<int:drive_id>/applications", methods=["GET"])
+def get_drive_applications(drive_id):
+
+    if session.get("role") != "company":
+        return jsonify({"message": "Unauthorized"}), 401
+
+    company = Company.query.filter_by(
+        user_id=session["user_id"]
+    ).first()
+
+    if not company:
+        return jsonify({"message": "Company not found"}), 404
+
+    drive = PlacementDrive.query.filter_by(
+        id=drive_id,
+        company_id=company.id
+    ).first()
+
+    if not drive:
+        return jsonify({"message": "Placement drive not found"}), 404
+
+    applications = Application.query.filter_by(
+        drive_id=drive.id
+    ).all()
+
+    result = []
+
+    for application in applications:
+
+        student = Student.query.get(application.student_id)
+
+        user = User.query.get(student.user_id)
+
+        result.append({
+
+            "application_id": application.id,
+
+            "student_id": student.id,
+
+            "student_name": student.full_name,
+
+            "email": user.email,
+
+            "phone": student.phone,
+
+            "branch": student.branch,
+
+            "cgpa": student.cgpa,
+
+            "passing_year": student.passing_year,
+
+            "skills": student.skills,
+
+            "resume": student.resume,
+
+            "status": application.status,
+
+            "application_date": str(
+                application.application_date.date()
+            )
+
+        })
+
+    return jsonify(result)
