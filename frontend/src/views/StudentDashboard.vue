@@ -14,6 +14,74 @@
 
     </div>
 
+    <div class="card shadow p-4 mb-4">
+
+      <h4 class="mb-3">My Profile</h4>
+
+      <div class="row">
+
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Full Name</label>
+          <input
+            v-model="profile.full_name"
+            class="form-control"
+          >
+        </div>
+
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Phone</label>
+          <input
+            v-model="profile.phone"
+            class="form-control"
+          >
+        </div>
+
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Branch</label>
+          <input
+            v-model="profile.branch"
+            class="form-control"
+          >
+        </div>
+
+        <div class="col-md-6 mb-3">
+          <label class="form-label">CGPA</label>
+          <input
+            v-model="profile.cgpa"
+            class="form-control"
+            type="number"
+          >
+        </div>
+
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Passing Year</label>
+          <input
+            v-model="profile.passing_year"
+            class="form-control"
+            type="number"
+          >
+        </div>
+
+        <div class="col-12 mb-3">
+          <label class="form-label">Skills</label>
+          <textarea
+            v-model="profile.skills"
+            class="form-control"
+            rows="3"
+          ></textarea>
+        </div>
+
+      </div>
+
+      <button
+        class="btn btn-primary"
+        @click="updateProfile"
+      >
+        Update Profile
+      </button>
+
+    </div>
+
     <div class="card shadow p-4">
 
       <h4 class="mb-3">
@@ -163,10 +231,19 @@
 import { ref, onMounted } from "vue";
 import api from "../services/api";
 import { useRouter } from "vue-router";
+import { reactive } from "vue";
 
 const router = useRouter();
 const drives = ref([]);
 const applications = ref([]);
+const profile = reactive({
+  full_name: "",
+  phone: "",
+  branch: "",
+  cgpa: "",
+  passing_year: "",
+  skills: ""
+});
 
 const loadDrives = async () => {
   try {
@@ -230,8 +307,50 @@ async function logout() {
 
 }
 
+async function loadProfile() {
+
+  try {
+
+    const response = await api.get("/student/profile");
+
+    Object.assign(profile, response.data);
+
+  } catch (error) {
+
+    alert(
+      error.response?.data?.message ||
+      "Failed to load profile."
+    );
+
+  }
+
+}
+
+async function updateProfile() {
+
+  try {
+
+    const response = await api.put(
+      "/student/profile",
+      profile
+    );
+
+    alert(response.data.message);
+
+  } catch (error) {
+
+    alert(
+      error.response?.data?.message ||
+      "Profile update failed."
+    );
+
+  }
+
+}
+
 onMounted(() => {
   loadDrives();
   loadApplications();
+  loadProfile();
 });
 </script>

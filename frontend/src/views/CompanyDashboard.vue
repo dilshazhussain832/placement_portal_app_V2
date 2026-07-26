@@ -14,6 +14,63 @@
 
     </div>
 
+    <div class="card shadow p-4 mb-4">
+
+      <h4 class="mb-3">My Company Profile</h4>
+
+      <div class="row">
+
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Company Name</label>
+          <input
+            v-model="companyProfile.company_name"
+            class="form-control"
+          >
+        </div>
+
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Industry</label>
+          <input
+            v-model="companyProfile.industry"
+            class="form-control"
+          >
+        </div>
+
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Website</label>
+          <input
+            v-model="companyProfile.website"
+            class="form-control"
+          >
+        </div>
+
+        <div class="col-md-6 mb-3">
+          <label class="form-label">HR Name</label>
+          <input
+            v-model="companyProfile.hr_name"
+            class="form-control"
+          >
+        </div>
+
+        <div class="col-md-6 mb-3">
+          <label class="form-label">HR Email</label>
+          <input
+            v-model="companyProfile.hr_email"
+            class="form-control"
+          >
+        </div>
+
+      </div>
+
+      <button
+        class="btn btn-primary"
+        @click="updateCompanyProfile"
+      >
+        Update Profile
+      </button>
+
+    </div>
+
     <div class="card shadow p-4">
 
       <h4>Create Placement Drive</h4>
@@ -321,8 +378,9 @@
 
 <script setup>
 import api from "../services/api";
-import { ref, onMounted } from "vue";
+import { ref, onMounted, reactive } from "vue";
 import { useRouter } from "vue-router";
+
 
 const router = useRouter();
 const job_title = ref("");
@@ -334,6 +392,13 @@ const drives = ref([]);
 const editingDriveId = ref(null);
 const applicants = ref([]);
 const selectedDrive = ref(null);
+const companyProfile = reactive({
+  company_name: "",
+  industry: "",
+  website: "",
+  hr_name: "",
+  hr_email: ""
+});
 
 const createDrive = async () => {
   try {
@@ -402,6 +467,7 @@ const loadDrives = async () => {
 };
 
 onMounted(() => {
+  loadCompanyProfile();
   loadDrives();
 });
 
@@ -524,6 +590,47 @@ async function logout() {
     alert(
       error.response?.data?.message ||
       "Logout failed."
+    );
+
+  }
+
+}
+
+async function loadCompanyProfile() {
+
+  try {
+
+    const response = await api.get("/company/profile");
+
+    Object.assign(companyProfile, response.data);
+
+  } catch (error) {
+
+    alert(
+      error.response?.data?.message ||
+      "Failed to load company profile."
+    );
+
+  }
+
+}
+
+async function updateCompanyProfile() {
+
+  try {
+
+    const response = await api.put(
+      "/company/profile",
+      companyProfile
+    );
+
+    alert(response.data.message);
+
+  } catch (error) {
+
+    alert(
+      error.response?.data?.message ||
+      "Failed to update company profile."
     );
 
   }

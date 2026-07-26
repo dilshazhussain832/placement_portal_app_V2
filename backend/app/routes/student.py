@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, session
+from flask import Blueprint, jsonify, session, request
 from app.models import Student, PlacementDrive, Company, Application
 from app import db
 
@@ -114,3 +114,53 @@ def get_my_applications():
         })
 
     return jsonify(result)
+
+@student.route("/profile", methods=["GET"])
+def get_profile():
+
+    if session.get("role") != "student":
+        return jsonify({"message": "Unauthorized"}), 401
+
+    student = Student.query.filter_by(
+        user_id=session["user_id"]
+    ).first()
+
+    if not student:
+        return jsonify({"message": "Student not found"}), 404
+
+    return jsonify({
+        "full_name": student.full_name,
+        "phone": student.phone,
+        "branch": student.branch,
+        "cgpa": student.cgpa,
+        "passing_year": student.passing_year,
+        "skills": student.skills
+    })
+
+@student.route("/profile", methods=["PUT"])
+def update_profile():
+
+    if session.get("role") != "student":
+        return jsonify({"message": "Unauthorized"}), 401
+
+    student = Student.query.filter_by(
+        user_id=session["user_id"]
+    ).first()
+
+    if not student:
+        return jsonify({"message": "Student not found"}), 404
+
+    data = request.get_json()
+
+    student.full_name = data["full_name"]
+    student.phone = data["phone"]
+    student.branch = data["branch"]
+    student.cgpa = data["cgpa"]
+    student.passing_year = data["passing_year"]
+    student.skills = data["skills"]
+
+    db.session.commit()
+
+    return jsonify({
+        "message": "Profile updated successfully."
+    })

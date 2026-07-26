@@ -318,3 +318,51 @@ def reject_applicant(application_id):
     return jsonify({
         "message": "Applicant rejected successfully."
     })
+
+@company.route("/profile", methods=["GET"])
+def get_company_profile():
+
+    if session.get("role") != "company":
+        return jsonify({"message": "Unauthorized"}), 401
+
+    company_data = Company.query.filter_by(
+        user_id=session["user_id"]
+    ).first()
+
+    if not company_data:
+        return jsonify({"message": "Company not found"}), 404
+
+    return jsonify({
+        "company_name": company_data.company_name,
+        "industry": company_data.industry,
+        "website": company_data.website,
+        "hr_name": company_data.hr_name,
+        "hr_email": company_data.hr_email
+    })
+
+@company.route("/profile", methods=["PUT"])
+def update_company_profile():
+
+    if session.get("role") != "company":
+        return jsonify({"message": "Unauthorized"}), 401
+
+    company_data = Company.query.filter_by(
+        user_id=session["user_id"]
+    ).first()
+
+    if not company_data:
+        return jsonify({"message": "Company not found"}), 404
+
+    data = request.get_json()
+
+    company_data.company_name = data["company_name"]
+    company_data.industry = data["industry"]
+    company_data.website = data["website"]
+    company_data.hr_name = data["hr_name"]
+    company_data.hr_email = data["hr_email"]
+
+    db.session.commit()
+
+    return jsonify({
+        "message": "Company profile updated successfully."
+    })
