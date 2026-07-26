@@ -20,6 +20,11 @@ class PlacementDrive(db.Model):
 
     status = db.Column(db.String(20), default="Open")
 
+    approval_status = db.Column(
+        db.String(20),
+        default="Pending"
+    )
+
     applications = db.relationship("Application", backref="placement_drive", lazy=True)
 
     placements = db.relationship("Placement", backref="placement_drive", lazy=True)

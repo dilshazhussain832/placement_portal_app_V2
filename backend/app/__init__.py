@@ -11,6 +11,8 @@ migrate = Migrate()
 from app.routes import main
 from app.routes.auth import auth
 from app.routes.admin import admin
+from app.routes.company import company
+from app.routes.student import student
 import app.models
 
 
@@ -33,5 +35,7 @@ def create_app():
     app.register_blueprint(main)
     app.register_blueprint(auth, url_prefix="/api")
     app.register_blueprint(admin, url_prefix="/api/admin")
+    app.register_blueprint(company, url_prefix="/api/company")
+    app.register_blueprint(student, url_prefix="/api/student")
 
     return app

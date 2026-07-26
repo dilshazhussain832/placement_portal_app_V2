@@ -45,6 +45,30 @@ def get_companies():
 
     return jsonify(result)
 
+@admin.route("/students")
+def get_students():
+
+    if session.get("role") != "admin":
+        return jsonify({"message": "Unauthorized"}), 401
+
+    students = Student.query.all()
+
+    result = []
+
+    for student in students:
+
+        result.append({
+            "id": student.id,
+            "full_name": student.full_name,
+            "phone": student.phone,
+            "branch": student.branch,
+            "cgpa": student.cgpa,
+            "passing_year": student.passing_year,
+            "skills": student.skills
+        })
+
+    return jsonify(result)
+
 @admin.route("/company/<int:company_id>/approve", methods=["PUT"])
 def approve_company(company_id):
 
@@ -81,4 +105,68 @@ def reject_company(company_id):
 
     return jsonify({
         "message": "Company rejected successfully"
+    })
+
+@admin.route("/drives", methods=["GET"])
+def get_all_drives():
+
+    if session.get("role") != "admin":
+        return jsonify({"message": "Unauthorized"}), 401
+
+    drives = PlacementDrive.query.all()
+
+    result = []
+
+    for drive in drives:
+
+        company = Company.query.get(drive.company_id)
+
+        result.append({
+            "id": drive.id,
+            "company_name": company.company_name if company else "N/A",
+            "job_title": drive.job_title,
+            "salary": drive.salary,
+            "application_deadline": str(drive.application_deadline),
+            "status": drive.status,
+            "approval_status": drive.approval_status
+        })
+
+    return jsonify(result)
+
+@admin.route("/drive/<int:drive_id>/approve", methods=["PUT"])
+def approve_drive(drive_id):
+
+    if session.get("role") != "admin":
+        return jsonify({"message": "Unauthorized"}), 401
+
+    drive = PlacementDrive.query.get(drive_id)
+
+    if not drive:
+        return jsonify({"message": "Placement drive not found"}), 404
+
+    drive.approval_status = "Approved"
+
+    db.session.commit()
+
+    return jsonify({
+        "message": "Placement drive approved successfully"
+    })
+
+@admin.route("/drive/<int:drive_id>/reject", methods=["PUT"])
+def reject_drive(drive_id):
+
+    if session.get("role") != "admin":
+        return jsonify({"message": "Unauthorized"}), 401
+
+    drive = PlacementDrive.query.get(drive_id)
+
+    if not drive:
+        return jsonify({"message": "Placement drive not found"}), 404
+
+    drive.approval_status = "Rejected"
+
+    db.session.commit()
+
+    return jsonify({
+        "message": "Placement drive rejected successfully"
     })
