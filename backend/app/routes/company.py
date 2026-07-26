@@ -82,9 +82,15 @@ def update_drive(drive_id):
         id=drive_id,
         company_id=company.id
     ).first()
+    
 
     if not drive:
         return jsonify({"message": "Placement drive not found"}), 404
+
+    if drive.approval_status == "Approved":
+        return jsonify({
+            "message": "Approved placement drives cannot be edited."
+        }), 400
 
     data = request.get_json()
 
@@ -133,6 +139,11 @@ def delete_drive(drive_id):
     if not drive:
         return jsonify({"message": "Placement drive not found"}), 404
 
+    if drive.approval_status == "Approved":
+        return jsonify({
+            "message": "Approved placement drives cannot be deleted."
+        }), 400
+
     db.session.delete(drive)
     db.session.commit()
 
@@ -158,6 +169,11 @@ def toggle_drive_status(drive_id):
 
     if not drive:
         return jsonify({"message": "Placement drive not found"}), 404
+
+    if drive.approval_status == "Rejected":
+        return jsonify({
+            "message": "Rejected placement drives cannot be reopened or closed."
+        }), 400
 
     if drive.status == "Open":
         drive.status = "Closed"
@@ -236,3 +252,69 @@ def get_drive_applications(drive_id):
         })
 
     return jsonify(result)
+
+@company.route("/application/<int:application_id>/shortlist", methods=["PUT"])
+def shortlist_applicant(application_id):
+
+    if session.get("role") != "company":
+        return jsonify({"message": "Unauthorized"}), 401
+
+    application = Application.query.get(application_id)
+
+    if not application:
+        return jsonify({"message": "Application not found"}), 404
+
+    drive = PlacementDrive.query.get(application.drive_id)
+
+    company = Company.query.filter_by(
+        user_id=session["user_id"]
+    ).first()
+
+    if drive.company_id != company.id:
+        return jsonify({"message": "Unauthorized"}), 403
+
+    if application.status != "Applied":
+        return jsonify({
+            "message": "Final decision has already been made."
+        }), 400
+
+    application.status = "Shortlisted"
+
+    db.session.commit()
+
+    return jsonify({
+        "message": "Applicant shortlisted successfully."
+    })
+
+@company.route("/application/<int:application_id>/reject", methods=["PUT"])
+def reject_applicant(application_id):
+
+    if session.get("role") != "company":
+        return jsonify({"message": "Unauthorized"}), 401
+
+    application = Application.query.get(application_id)
+
+    if not application:
+        return jsonify({"message": "Application not found"}), 404
+
+    drive = PlacementDrive.query.get(application.drive_id)
+
+    company = Company.query.filter_by(
+        user_id=session["user_id"]
+    ).first()
+
+    if drive.company_id != company.id:
+        return jsonify({"message": "Unauthorized"}), 403
+
+    if application.status != "Applied":
+        return jsonify({
+            "message": "Final decision has already been made."
+        }), 400
+
+    application.status = "Rejected"
+
+    db.session.commit()
+
+    return jsonify({
+        "message": "Applicant rejected successfully."
+    })

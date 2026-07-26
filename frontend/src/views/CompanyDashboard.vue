@@ -114,12 +114,7 @@
             <td>{{ drive.approval_status }}</td>
             <td>
 
-              <button
-                class="btn btn-warning btn-sm me-2"
-                @click="editDrive(drive)"
-              >
-                Edit
-              </button>
+              
 
               <button
                 v-if="drive.status === 'Open'"
@@ -137,21 +132,51 @@
                 Open
               </button>
 
-              <button
-                class="btn btn-danger btn-sm"
-                @click="deleteDrive(drive.id)"
+              <template v-if="drive.approval_status !== 'Approved'">
+
+                <button
+                  class="btn btn-warning btn-sm me-2"
+                  @click="editDrive(drive)"
+                >
+                  Edit
+                </button>
+
+                <button
+                  class="btn btn-danger btn-sm me-2"
+                  @click="deleteDrive(drive.id)"
+                >
+                  Delete
+                </button>
+
+              </template>
+
+              <span
+                v-else
+                class="badge bg-success"
               >
-                Delete
-              </button>
+                Approved - Locked
+              </span>
+
+              
 
             </td>
             <td>
+
               <button
+                v-if="drive.approval_status === 'Approved'"
                 class="btn btn-info btn-sm"
                 @click="loadApplicants(drive)"
               >
                 View Applicants
               </button>
+
+              <span
+                v-else
+                class="badge bg-secondary"
+              >
+                Not Available
+              </span>
+
             </td>
 
           </tr>
@@ -237,22 +262,39 @@
 
             <td>
 
-              <button
-                class="btn btn-success btn-sm me-2"
-                @click="shortlistApplicant(applicant.application_id)"
-              >
-                Shortlist
-              </button>
+              <template v-if="applicant.status === 'Applied'">
 
-              <button
-                class="btn btn-danger btn-sm"
-                @click="rejectApplicant(applicant.application_id)"
+                <button
+                  class="btn btn-success btn-sm me-2"
+                  @click="shortlistApplicant(applicant.application_id)"
+                >
+                  Shortlist
+                </button>
+
+                <button
+                  class="btn btn-danger btn-sm"
+                  @click="rejectApplicant(applicant.application_id)"
+                >
+                  Reject
+                </button>
+
+              </template>
+
+              <span
+                v-else-if="applicant.status === 'Shortlisted'"
+                class="badge bg-success"
               >
-                Reject
-              </button>
+                Final Decision
+              </span>
+
+              <span
+                v-else
+                class="badge bg-danger"
+              >
+                Final Decision
+              </span>
 
             </td>
-
           </tr>
 
         </tbody>
@@ -419,6 +461,41 @@ const loadApplicants = async (drive) => {
 
   }
 
+};
+const shortlistApplicant = async (applicationId) => {
+  try {
+    const response = await api.put(
+      `/company/application/${applicationId}/shortlist`
+    );
+
+    alert(response.data.message);
+
+    await loadApplicants(selectedDrive.value);
+
+  } catch (error) {
+    alert(
+      error.response?.data?.message ||
+      "Failed to shortlist applicant."
+    );
+  }
+};
+
+const rejectApplicant = async (applicationId) => {
+  try {
+    const response = await api.put(
+      `/company/application/${applicationId}/reject`
+    );
+
+    alert(response.data.message);
+
+    await loadApplicants(selectedDrive.value);
+
+  } catch (error) {
+    alert(
+      error.response?.data?.message ||
+      "Failed to reject applicant."
+    );
+  }
 };
 
 </script>
