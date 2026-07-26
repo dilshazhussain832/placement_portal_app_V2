@@ -1,9 +1,18 @@
 <template>
   <div class="container mt-5">
 
-    <h2 class="mb-4">
-      Admin Dashboard
-    </h2>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+      <h2>Admin Dashboard</h2>
+
+      <button
+        class="btn btn-danger"
+        @click="logout"
+      >
+        Logout
+      </button>
+
+    </div>
 
     <div class="row">
 
@@ -233,7 +242,9 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import api from "../services/api";
+import { useRouter } from "vue-router";
 
+const router = useRouter();
 const dashboard = ref({});
 const companies = ref([]);
 const students = ref([]);
@@ -343,6 +354,27 @@ const rejectDrive = async (id) => {
   }
 
 };
+
+async function logout() {
+
+  try {
+
+    const response = await api.post("/logout");
+
+    alert(response.data.message);
+
+    router.push("/");
+
+  } catch (error) {
+
+    alert(
+      error.response?.data?.message ||
+      "Logout failed."
+    );
+
+  }
+
+}
 
 onMounted(() => {
   loadDashboard();

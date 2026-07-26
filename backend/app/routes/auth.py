@@ -118,3 +118,12 @@ def login():
         "message": "Login successful",
         "role": user.role
     }), 200
+
+@auth.route("/logout", methods=["POST"])
+def logout():
+
+    session.clear()
+
+    return jsonify({
+        "message": "Logged out successfully."
+    }), 200

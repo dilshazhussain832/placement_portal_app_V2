@@ -35,11 +35,17 @@
       </button>
 
       <div class="d-grid gap-2">
-        <button class="btn btn-outline-success">
+        <button
+          class="btn btn-outline-success"
+          @click="router.push('/student-register')"
+        >
           Student Registration
         </button>
 
-        <button class="btn btn-outline-secondary">
+        <button
+          class="btn btn-outline-secondary"
+          @click="router.push('/company-register')"
+        >
           Company Registration
         </button>
       </div>

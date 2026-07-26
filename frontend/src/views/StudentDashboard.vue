@@ -1,9 +1,18 @@
 <template>
   <div class="container mt-5">
 
-    <h2 class="mb-4">
-      Student Dashboard
-    </h2>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+      <h2>Student Dashboard</h2>
+
+      <button
+        class="btn btn-danger"
+        @click="logout"
+      >
+        Logout
+      </button>
+
+    </div>
 
     <div class="card shadow p-4">
 
@@ -27,6 +36,12 @@
         </thead>
 
         <tbody>
+
+          <tr v-if="drives.length === 0">
+            <td colspan="100" class="text-center text-muted py-4">
+              No placement drives are available at the moment.
+            </td>
+          </tr>
 
           <tr
             v-for="drive in drives"
@@ -86,6 +101,12 @@
 
         <tbody>
 
+          <tr v-if="applications.length === 0">
+            <td colspan="100" class="text-center text-muted py-4">
+              You have not applied to any placement drives yet.
+            </td>
+          </tr>
+
           <tr
             v-for="application in applications"
             :key="application.application_id"
@@ -141,7 +162,9 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import api from "../services/api";
+import { useRouter } from "vue-router";
 
+const router = useRouter();
 const drives = ref([]);
 const applications = ref([]);
 
@@ -185,6 +208,27 @@ const hasApplied = (driveId) => {
     application => application.drive_id === driveId
   );
 };
+
+async function logout() {
+
+  try {
+
+    const response = await api.post("/logout");
+
+    alert(response.data.message);
+
+    router.push("/");
+
+  } catch (error) {
+
+    alert(
+      error.response?.data?.message ||
+      "Logout failed."
+    );
+
+  }
+
+}
 
 onMounted(() => {
   loadDrives();

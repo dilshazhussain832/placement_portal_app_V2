@@ -1,9 +1,18 @@
 <template>
   <div class="container mt-5">
 
-    <h2 class="mb-4">
-      Company Dashboard
-    </h2>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+      <h2>Company Dashboard</h2>
+
+      <button
+        class="btn btn-danger"
+        @click="logout"
+      >
+        Logout
+      </button>
+
+    </div>
 
     <div class="card shadow p-4">
 
@@ -313,7 +322,9 @@
 <script setup>
 import api from "../services/api";
 import { ref, onMounted } from "vue";
+import { useRouter } from "vue-router";
 
+const router = useRouter();
 const job_title = ref("");
 const job_description = ref("");
 const eligibility = ref("");
@@ -497,5 +508,26 @@ const rejectApplicant = async (applicationId) => {
     );
   }
 };
+
+async function logout() {
+
+  try {
+
+    const response = await api.post("/logout");
+
+    alert(response.data.message);
+
+    router.push("/");
+
+  } catch (error) {
+
+    alert(
+      error.response?.data?.message ||
+      "Logout failed."
+    );
+
+  }
+
+}
 
 </script>
