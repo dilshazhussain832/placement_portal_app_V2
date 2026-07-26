@@ -106,6 +106,7 @@ def get_my_applications():
 
         result.append({
             "application_id": application.id,
+            "drive_id": drive.id,
             "company_name": company.company_name,
             "job_title": drive.job_title,
             "application_date": str(application.application_date.date()),
