@@ -1,6 +1,8 @@
-from flask import Blueprint, jsonify, session, request
+from flask import Blueprint, jsonify, session, request, current_app, send_from_directory
 from app.models import Student, PlacementDrive, Company, Application
 from app import db
+from werkzeug.utils import secure_filename
+import os
 
 student = Blueprint("student", __name__)
 
@@ -134,7 +136,8 @@ def get_profile():
         "branch": student.branch,
         "cgpa": student.cgpa,
         "passing_year": student.passing_year,
-        "skills": student.skills
+        "skills": student.skills,
+        "resume": student.resume
     })
 
 @student.route("/profile", methods=["PUT"])
@@ -164,3 +167,60 @@ def update_profile():
     return jsonify({
         "message": "Profile updated successfully."
     })
+
+@student.route("/upload-resume", methods=["POST"])
+def upload_resume():
+
+    if session.get("role") != "student":
+        return jsonify({"message": "Unauthorized"}), 401
+
+    student = Student.query.filter_by(
+        user_id=session["user_id"]
+    ).first()
+
+    if not student:
+        return jsonify({"message": "Student not found"}), 404
+
+    if "resume" not in request.files:
+        return jsonify({"message": "No resume uploaded"}), 400
+
+    file = request.files["resume"]
+
+    if file.filename == "":
+        return jsonify({"message": "No file selected"}), 400
+
+    filename = f"{student.id}_{secure_filename(file.filename)}"
+
+    filepath = os.path.join(
+        current_app.config["UPLOAD_FOLDER"],
+        filename
+    )
+
+    file.save(filepath)
+
+    student.resume = filename
+
+    db.session.commit()
+
+    return jsonify({
+        "message": "Resume uploaded successfully.",
+        "resume": filename
+    })
+
+@student.route("/resume", methods=["GET"])
+def view_resume():
+
+    if session.get("role") != "student":
+        return jsonify({"message": "Unauthorized"}), 401
+
+    student = Student.query.filter_by(
+        user_id=session["user_id"]
+    ).first()
+
+    if not student or not student.resume:
+        return jsonify({"message": "Resume not found"}), 404
+
+    return send_from_directory(
+        current_app.config["UPLOAD_FOLDER"],
+        student.resume
+    )

@@ -73,6 +73,67 @@
 
       </div>
 
+      
+      <div v-if="!resumeName || showUpload">
+
+        <div class="col-12 mb-3">
+
+          <label class="form-label">Resume (PDF)</label>
+
+          <input
+            type="file"
+            class="form-control"
+            accept=".pdf"
+            @change="selectResume"
+          >
+
+        </div>
+
+        <div class="mb-3">
+
+          <button
+            class="btn btn-success"
+            @click="uploadResume"
+          >
+            Upload Resume
+          </button>
+
+        </div>
+
+      </div>
+
+      <div
+        v-else
+        class="alert alert-success d-flex justify-content-between align-items-center"
+      >
+
+        <div>
+
+          <strong>Resume Uploaded:</strong>
+          {{ resumeName }}
+
+        </div>
+
+        <div>
+
+          <button
+            class="btn btn-outline-primary btn-sm me-2"
+            @click="viewResume"
+          >
+            View Resume
+          </button>
+
+          <button
+            class="btn btn-warning btn-sm"
+            @click="showUpload = true"
+          >
+            Replace Resume
+          </button>
+
+        </div>
+
+      </div>
+
       <button
         class="btn btn-primary"
         @click="updateProfile"
@@ -236,6 +297,9 @@ import { reactive } from "vue";
 const router = useRouter();
 const drives = ref([]);
 const applications = ref([]);
+const resumeFile = ref(null);
+const resumeName = ref("");
+const showUpload = ref(false);
 const profile = reactive({
   full_name: "",
   phone: "",
@@ -314,6 +378,7 @@ async function loadProfile() {
     const response = await api.get("/student/profile");
 
     Object.assign(profile, response.data);
+    resumeName.value = response.data.resume || "";
 
   } catch (error) {
 
@@ -345,6 +410,60 @@ async function updateProfile() {
     );
 
   }
+
+}
+
+function selectResume(event) {
+
+  resumeFile.value = event.target.files[0];
+
+}
+
+async function uploadResume() {
+
+  if (!resumeFile.value) {
+
+    alert("Please select a resume.");
+
+    return;
+
+  }
+
+  const formData = new FormData();
+
+  formData.append("resume", resumeFile.value);
+
+  try {
+
+    const response = await api.post(
+      "/student/upload-resume",
+      formData
+    );
+
+    resumeName.value = response.data.resume;
+    resumeFile.value = null;
+    showUpload.value = false;
+    await loadProfile();
+
+    alert(response.data.message);
+
+  } catch (error) {
+
+    alert(
+      error.response?.data?.message ||
+      "Resume upload failed."
+    );
+
+  }
+
+}
+
+function viewResume() {
+
+  window.open(
+    "http://localhost:5000/api/student/resume",
+    "_blank"
+  );
 
 }
 

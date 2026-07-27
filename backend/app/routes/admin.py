@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, session
+from flask import Blueprint, jsonify, session, request, send_from_directory, current_app
 from app import db
 from app.models import User, Student, Company, PlacementDrive, Application
 
@@ -27,7 +27,18 @@ def get_companies():
     if session.get("role") != "admin":
         return jsonify({"message": "Unauthorized"}), 401
 
-    companies = Company.query.all()
+    search = request.args.get("search", "").strip()
+
+    query = Company.query
+
+    if search:
+        query = query.filter(
+            (Company.company_name.ilike(f"%{search}%")) |
+            (Company.industry.ilike(f"%{search}%")) |
+            (Company.hr_name.ilike(f"%{search}%"))
+        )
+
+    companies = query.all()
 
     result = []
 
@@ -51,7 +62,18 @@ def get_students():
     if session.get("role") != "admin":
         return jsonify({"message": "Unauthorized"}), 401
 
-    students = Student.query.all()
+    search = request.args.get("search", "").strip()
+
+    query = Student.query
+
+    if search:
+        query = query.filter(
+            (Student.full_name.ilike(f"%{search}%")) |
+            (Student.branch.ilike(f"%{search}%")) |
+            (Student.phone.ilike(f"%{search}%"))
+        )
+
+    students = query.all()
 
     result = []
 
@@ -64,7 +86,8 @@ def get_students():
             "branch": student.branch,
             "cgpa": student.cgpa,
             "passing_year": student.passing_year,
-            "skills": student.skills
+            "skills": student.skills,
+            "resume": student.resume
         })
 
     return jsonify(result)
@@ -170,3 +193,22 @@ def reject_drive(drive_id):
     return jsonify({
         "message": "Placement drive rejected successfully"
     })
+
+@admin.route("/resume/<int:student_id>", methods=["GET"])
+def view_student_resume(student_id):
+
+    if session.get("role") != "admin":
+        return jsonify({"message": "Unauthorized"}), 401
+
+    student = Student.query.get(student_id)
+
+    if not student:
+        return jsonify({"message": "Student not found"}), 404
+
+    if not student.resume:
+        return jsonify({"message": "Resume not uploaded"}), 404
+
+    return send_from_directory(
+        current_app.config["UPLOAD_FOLDER"],
+        student.resume
+    )

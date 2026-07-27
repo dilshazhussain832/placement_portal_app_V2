@@ -328,6 +328,14 @@
 
             <td>
 
+              <button
+                v-if="applicant.resume"
+                class="btn btn-info btn-sm me-2"
+                @click="viewStudentResume(applicant.student_id)"
+              >
+                View Resume
+              </button>
+
               <template v-if="applicant.status === 'Applied'">
 
                 <button
@@ -634,6 +642,15 @@ async function updateCompanyProfile() {
     );
 
   }
+
+}
+
+function viewStudentResume(studentId) {
+
+  window.open(
+    `http://localhost:5000/api/company/resume/${studentId}`,
+    "_blank"
+  );
 
 }
 

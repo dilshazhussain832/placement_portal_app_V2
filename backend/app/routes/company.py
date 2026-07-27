@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request, session
+from flask import Blueprint, jsonify, request, session, send_from_directory, current_app
 from app import db
 from app.models import Company, PlacementDrive, Student, Application, User
 from datetime import datetime
@@ -366,3 +366,22 @@ def update_company_profile():
     return jsonify({
         "message": "Company profile updated successfully."
     })
+
+@company.route("/resume/<int:student_id>", methods=["GET"])
+def view_student_resume(student_id):
+
+    if session.get("role") != "company":
+        return jsonify({"message": "Unauthorized"}), 401
+
+    student = Student.query.get(student_id)
+
+    if not student:
+        return jsonify({"message": "Student not found"}), 404
+
+    if not student.resume:
+        return jsonify({"message": "Resume not uploaded"}), 404
+
+    return send_from_directory(
+        current_app.config["UPLOAD_FOLDER"],
+        student.resume
+    )

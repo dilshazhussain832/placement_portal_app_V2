@@ -50,6 +50,18 @@
 
   <h3>Company Management</h3>
 
+  <div class="row mb-3">
+    <div class="col-md-6">
+      <input
+        v-model="companySearch"
+        @input="loadCompanies"
+        type="text"
+        class="form-control"
+        placeholder="Search by company, industry or HR name..."
+      >
+    </div>
+  </div>
+
   <table class="table table-bordered table-hover mt-3">
 
     <thead class="table-dark">
@@ -107,6 +119,18 @@
 
   <h3>Student Management</h3>
 
+  <div class="row mb-3">
+    <div class="col-md-6">
+      <input
+        v-model="studentSearch"
+        @input="loadStudents"
+        type="text"
+        class="form-control"
+        placeholder="Search by name, branch or phone..."
+      >
+    </div>
+  </div>
+
   <table class="table table-bordered table-hover mt-3">
 
     <thead class="table-dark">
@@ -116,6 +140,7 @@
         <th>CGPA</th>
         <th>Passing Year</th>
         <th>Skills</th>
+        <th>Resume</th>
       </tr>
     </thead>
 
@@ -128,6 +153,25 @@
         <td>{{ student.cgpa }}</td>
         <td>{{ student.passing_year }}</td>
         <td>{{ student.skills }}</td>
+
+        <td>
+
+          <button
+            v-if="student.resume"
+            class="btn btn-info btn-sm"
+            @click="viewResume(student.id)"
+          >
+            View Resume
+          </button>
+
+          <span
+            v-else
+            class="text-muted"
+          >
+            Not Uploaded
+          </span>
+
+        </td>
 
       </tr>
 
@@ -249,6 +293,8 @@ const dashboard = ref({});
 const companies = ref([]);
 const students = ref([]);
 const drives = ref([]);
+const studentSearch = ref("");
+const companySearch = ref("");
 
 async function loadDashboard() {
   try {
@@ -261,21 +307,49 @@ async function loadDashboard() {
 }
 
 async function loadCompanies() {
+
   try {
-    const response = await api.get("/admin/companies");
+
+    const response = await api.get("/admin/companies", {
+      params: {
+        search: companySearch.value
+      }
+    });
+
     companies.value = response.data;
+
   } catch (error) {
-    alert(error.response?.data?.message || "Failed to load companies");
+
+    alert(
+      error.response?.data?.message ||
+      "Failed to load companies."
+    );
+
   }
+
 }
 
 async function loadStudents() {
+
   try {
-    const response = await api.get("/admin/students");
+
+    const response = await api.get("/admin/students", {
+      params: {
+        search: studentSearch.value
+      }
+    });
+
     students.value = response.data;
+
   } catch (error) {
-    alert(error.response?.data?.message || "Failed to load students");
+
+    alert(
+      error.response?.data?.message ||
+      "Failed to load students."
+    );
+
   }
+
 }
 
 async function approveCompany(id) {
@@ -373,6 +447,15 @@ async function logout() {
     );
 
   }
+
+}
+
+function viewResume(studentId) {
+
+  window.open(
+    `http://localhost:5000/api/admin/resume/${studentId}`,
+    "_blank"
+  );
 
 }
 

@@ -12,3 +12,7 @@ class Config:
 
     SESSION_COOKIE_SAMESITE = "Lax"
     SESSION_COOKIE_SECURE = False
+
+    UPLOAD_FOLDER = os.path.join(BASE_DIR, "..", "uploads")
+
+    MAX_CONTENT_LENGTH = 5 * 1024 * 1024
