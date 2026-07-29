@@ -149,6 +149,21 @@
         Available Placement Drives
       </h4>
 
+      <div class="row mb-3">
+
+        <div class="col-md-6">
+
+          <input
+            v-model="driveSearch"
+            type="text"
+            class="form-control"
+            placeholder="Search by company, job title or eligibility..."
+          >
+
+        </div>
+
+      </div>
+
       <table class="table table-bordered table-hover">
 
         <thead>
@@ -166,14 +181,14 @@
 
         <tbody>
 
-          <tr v-if="drives.length === 0">
+          <tr v-if="filteredDrives.length === 0">
             <td colspan="100" class="text-center text-muted py-4">
               No placement drives are available at the moment.
             </td>
           </tr>
 
           <tr
-            v-for="drive in drives"
+            v-for="drive in filteredDrives"
             :key="drive.id"
           >
 
@@ -316,13 +331,14 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, computed } from "vue";
 import api from "../services/api";
 import { useRouter } from "vue-router";
 import { reactive } from "vue";
 
 const router = useRouter();
 const drives = ref([]);
+const driveSearch = ref("");
 const applications = ref([]);
 const resumeFile = ref(null);
 const resumeName = ref("");
@@ -569,6 +585,22 @@ async function downloadApplications() {
   }
 
 }
+
+const filteredDrives = computed(() => {
+
+  const search = driveSearch.value.toLowerCase().trim();
+
+  if (!search) {
+    return drives.value;
+  }
+
+  return drives.value.filter(drive =>
+    drive.company_name.toLowerCase().includes(search) ||
+    drive.job_title.toLowerCase().includes(search) ||
+    drive.eligibility.toLowerCase().includes(search)
+  );
+
+});
 
 onMounted(() => {
   loadDrives();
