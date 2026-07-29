@@ -1,12 +1,13 @@
-from flask import Blueprint, jsonify, session, request, send_from_directory, current_app
-from app import db
+from flask import Blueprint, jsonify, session, request, send_from_directory, current_app, send_file
+from app import db, cache
 from app.models import User, Student, Company, PlacementDrive, Application
+import os
 
 admin = Blueprint("admin", __name__)
 
 @admin.route("/dashboard")
+@cache.cached(timeout=60)
 def dashboard():
-    
 
     if session.get("role") != "admin":
         return jsonify({"message": "Unauthorized"}), 401
@@ -87,10 +88,31 @@ def get_students():
             "cgpa": student.cgpa,
             "passing_year": student.passing_year,
             "skills": student.skills,
-            "resume": student.resume
+            "resume": student.resume,
+            "is_active": student.user.is_active
         })
 
     return jsonify(result)
+
+@admin.route("/company/<int:company_id>/toggle-status", methods=["PUT"])
+def toggle_company_status(company_id):
+
+    if session.get("role") != "admin":
+        return jsonify({"message": "Unauthorized"}), 401
+
+    company = Company.query.get(company_id)
+
+    if not company:
+        return jsonify({"message": "Company not found"}), 404
+
+    company.user.is_active = not company.user.is_active
+
+    db.session.commit()
+
+    return jsonify({
+        "message": "Company status updated successfully.",
+        "is_active": company.user.is_active
+    }), 200
 
 @admin.route("/company/<int:company_id>/approve", methods=["PUT"])
 def approve_company(company_id):
@@ -129,6 +151,26 @@ def reject_company(company_id):
     return jsonify({
         "message": "Company rejected successfully"
     })
+
+@admin.route("/student/<int:student_id>/toggle-status", methods=["PUT"])
+def toggle_student_status(student_id):
+
+    if session.get("role") != "admin":
+        return jsonify({"message": "Unauthorized"}), 401
+
+    student = Student.query.get(student_id)
+
+    if not student:
+        return jsonify({"message": "Student not found"}), 404
+
+    student.user.is_active = not student.user.is_active
+
+    db.session.commit()
+
+    return jsonify({
+        "message": "Student status updated successfully.",
+        "is_active": student.user.is_active
+    }), 200
 
 @admin.route("/drives", methods=["GET"])
 def get_all_drives():
@@ -212,3 +254,60 @@ def view_student_resume(student_id):
         current_app.config["UPLOAD_FOLDER"],
         student.resume
     )
+
+@admin.route("/export-students", methods=["POST"])
+def export_students():
+
+    from app.services.tasks import export_students_csv
+
+    task = export_students_csv.delay()
+
+    return {
+        "message": "Student export started successfully.",
+        "task_id": task.id
+    }, 202
+
+
+@admin.route("/download-students", methods=["GET"])
+def download_students():
+
+    export_folder = current_app.config["EXPORT_FOLDER"]
+
+    file_path = os.path.join(export_folder, "students.csv")
+
+    if not os.path.exists(file_path):
+        return {
+            "message": "Please export students first."
+        }, 404
+
+    return send_file(
+        file_path,
+        as_attachment=True,
+        download_name="students.csv"
+    )
+
+@admin.route("/daily-reminder", methods=["POST"])
+def run_daily_reminder():
+
+    from app.services.tasks import daily_reminder
+
+    task = daily_reminder.delay()
+
+    return {
+        "message": "Daily reminder task started.",
+        "task_id": task.id
+    }, 202
+
+@admin.route("/monthly-report", methods=["POST"])
+def run_monthly_report():
+
+    if session.get("role") != "admin":
+        return jsonify({"message": "Unauthorized"}), 401
+
+    from app.services.tasks import monthly_activity_report
+
+    monthly_activity_report.delay()
+
+    return jsonify({
+        "message": "Monthly report started successfully."
+    })

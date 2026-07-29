@@ -16,6 +16,11 @@ def create_drive():
     if not company:
         return jsonify({"message": "Company not found"}), 404
 
+    if not company.user.is_active:
+        return jsonify({
+            "message": "Your account has been deactivated by the administrator."
+        }), 403
+
     data = request.get_json()
 
     drive = PlacementDrive(

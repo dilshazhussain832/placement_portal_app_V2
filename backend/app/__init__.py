@@ -2,18 +2,15 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_cors import CORS
+from flask_caching import Cache
 
 from app.config import Config
 
 db = SQLAlchemy()
 migrate = Migrate()
+cache = Cache()
 
-from app.routes import main
-from app.routes.auth import auth
-from app.routes.admin import admin
-from app.routes.company import company
-from app.routes.student import student
-import app.models
+
 
 
 def create_app():
@@ -31,6 +28,14 @@ def create_app():
 
     db.init_app(app)
     migrate.init_app(app, db)
+    cache.init_app(app)
+
+
+    from app.routes import main
+    from app.routes.auth import auth
+    from app.routes.admin import admin
+    from app.routes.company import company
+    from app.routes.student import student
 
     app.register_blueprint(main)
     app.register_blueprint(auth, url_prefix="/api")

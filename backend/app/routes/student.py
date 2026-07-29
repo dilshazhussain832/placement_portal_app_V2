@@ -48,6 +48,11 @@ def apply_for_drive(drive_id):
     if not student:
         return jsonify({"message": "Student not found"}), 404
 
+    if not student.user.is_active:
+        return jsonify({
+            "message": "Your account has been deactivated by the administrator."
+        }), 403
+
     drive = PlacementDrive.query.filter_by(
         id=drive_id,
         approval_status="Approved",
@@ -223,4 +228,46 @@ def view_resume():
     return send_from_directory(
         current_app.config["UPLOAD_FOLDER"],
         student.resume
+    )
+
+@student.route("/export-applications", methods=["POST"])
+def export_my_applications():
+
+    if session.get("role") != "student":
+        return jsonify({"message": "Unauthorized"}), 401
+
+    student = Student.query.filter_by(
+        user_id=session["user_id"]
+    ).first()
+
+    if not student:
+        return jsonify({"message": "Student not found"}), 404
+
+    from app.services.tasks import export_student_applications
+
+    export_student_applications.delay(student.id)
+
+    return jsonify({
+        "message": "Application export started successfully."
+    })
+
+@student.route("/download-applications", methods=["GET"])
+def download_my_applications():
+
+    if session.get("role") != "student":
+        return jsonify({"message": "Unauthorized"}), 401
+
+    student = Student.query.filter_by(
+        user_id=session["user_id"]
+    ).first()
+
+    if not student:
+        return jsonify({"message": "Student not found"}), 404
+
+    filename = f"student_{student.id}_applications.csv"
+
+    return send_from_directory(
+        current_app.config["EXPORT_FOLDER"],
+        filename,
+        as_attachment=True
     )

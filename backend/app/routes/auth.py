@@ -103,6 +103,11 @@ def login():
     if not user.check_password(password):
         return jsonify({"message": "Invalid email or password"}), 401
 
+    if not user.is_active:
+        return jsonify({
+            "message": "Your account has been deactivated by the administrator."
+        }), 403
+
     if user.role == "company":
         company = Company.query.filter_by(user_id=user.id).first()
 

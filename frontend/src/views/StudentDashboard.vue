@@ -217,6 +217,33 @@
         My Applications
       </h4>
 
+      <div class="mb-3">
+
+        <button
+          class="btn btn-success me-2"
+          @click="exportApplications"
+          :disabled="exporting"
+        >
+          {{ exporting ? "Generating CSV..." : "Export My Applications" }}
+        </button>
+
+        <button
+          class="btn btn-primary"
+          @click="downloadApplications"
+          :disabled="!exportCompleted"
+        >
+          Download CSV
+        </button>
+
+      </div>
+
+      <div
+        v-if="successMessage"
+        class="alert alert-success"
+      >
+        {{ successMessage }}
+      </div>
+
       <table class="table table-bordered table-hover">
 
         <thead>
@@ -300,6 +327,9 @@ const applications = ref([]);
 const resumeFile = ref(null);
 const resumeName = ref("");
 const showUpload = ref(false);
+const exporting = ref(false);
+const exportCompleted = ref(false);
+const successMessage = ref("");
 const profile = reactive({
   full_name: "",
   phone: "",
@@ -464,6 +494,79 @@ function viewResume() {
     "http://localhost:5000/api/student/resume",
     "_blank"
   );
+
+}
+
+async function exportApplications() {
+
+  try {
+
+    exporting.value = true;
+
+    const response = await api.post(
+      "/student/export-applications"
+    );
+
+    successMessage.value = response.data.message;
+
+    exportCompleted.value = true;
+
+    setTimeout(() => {
+      successMessage.value = "";
+    }, 3000);
+
+  } catch (error) {
+
+    alert(
+      error.response?.data?.message ||
+      "Export failed."
+    );
+
+  } finally {
+
+    exporting.value = false;
+
+  }
+
+}
+
+async function downloadApplications() {
+
+  try {
+
+    const response = await api.get(
+      "/student/download-applications",
+      {
+        responseType: "blob"
+      }
+    );
+
+    const url = window.URL.createObjectURL(
+      new Blob([response.data])
+    );
+
+    const link = document.createElement("a");
+
+    link.href = url;
+    link.setAttribute(
+      "download",
+      "my_applications.csv"
+    );
+
+    document.body.appendChild(link);
+
+    link.click();
+
+    link.remove();
+
+  } catch (error) {
+
+    alert(
+      error.response?.data?.message ||
+      "Download failed."
+    );
+
+  }
 
 }
 

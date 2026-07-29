@@ -46,6 +46,45 @@
 
     </div>
 
+    <div
+      v-if="successMessage"
+      class="alert alert-success"
+      role="alert"
+    >
+      {{ successMessage }}
+    </div>
+
+    <div class="mt-4 d-flex gap-2">
+    <button
+      class="btn btn-success"
+      @click="exportStudents"
+      :disabled="exporting"
+    >
+      {{ exporting ? "Generating CSV..." : "Export Students" }}
+    </button>
+
+    <button
+      class="btn btn-primary"
+      @click="downloadStudents"
+      :disabled="!exportCompleted"
+    >
+      Download Latest CSV
+    </button>
+    <button
+      class="btn btn-warning"
+      @click="runDailyReminder"
+    >
+      Run Daily Reminder
+    </button>
+
+    <button
+      class="btn btn-dark"
+      @click="runMonthlyReport"
+    >
+      Run Monthly Report
+    </button>
+  </div>
+
     <hr class="my-5">
 
   <h3>Company Management</h3>
@@ -70,6 +109,7 @@
         <th>Industry</th>
         <th>HR Name</th>
         <th>Status</th>
+        <th>Account</th>
       </tr>
     </thead>
 
@@ -110,6 +150,24 @@
         </button>
       </td>
 
+      <td>
+
+        <span
+          class="badge me-2"
+          :class="company.is_active ? 'bg-success' : 'bg-danger'"
+        >
+          {{ company.is_active ? "Active" : "Blacklisted" }}
+        </span>
+
+        <button
+          class="btn btn-secondary btn-sm"
+          @click="toggleCompanyStatus(company.id)"
+        >
+          {{ company.is_active ? "Blacklist" : "Activate" }}
+        </button>
+
+      </td>
+
       </tr>
 
     </tbody>
@@ -141,6 +199,7 @@
         <th>Passing Year</th>
         <th>Skills</th>
         <th>Resume</th>
+        <th>Account</th>
       </tr>
     </thead>
 
@@ -170,6 +229,24 @@
           >
             Not Uploaded
           </span>
+
+        </td>
+
+        <td>
+
+          <span
+            class="badge me-2"
+            :class="student.is_active ? 'bg-success' : 'bg-danger'"
+          >
+            {{ student.is_active ? "Active" : "Blacklisted" }}
+          </span>
+
+          <button
+            class="btn btn-secondary btn-sm"
+            @click="toggleStudentStatus(student.id)"
+          >
+            {{ student.is_active ? "Blacklist" : "Activate" }}
+          </button>
 
         </td>
 
@@ -295,6 +372,9 @@ const students = ref([]);
 const drives = ref([]);
 const studentSearch = ref("");
 const companySearch = ref("");
+const exporting = ref(false);
+const successMessage = ref("");
+const exportCompleted = ref(false);
 
 async function loadDashboard() {
   try {
@@ -378,6 +458,52 @@ async function rejectCompany(id) {
   }
 }
 
+async function toggleCompanyStatus(id) {
+
+  try {
+
+    const response = await api.put(
+      `/admin/company/${id}/toggle-status`
+    );
+
+    successMessage.value = response.data.message;
+
+    loadCompanies();
+
+  } catch (error) {
+
+    alert(
+      error.response?.data?.message ||
+      "Failed to update company status."
+    );
+
+  }
+
+}
+
+async function toggleStudentStatus(id) {
+
+  try {
+
+    const response = await api.put(
+      `/admin/student/${id}/toggle-status`
+    );
+
+    successMessage.value = response.data.message;
+
+    loadStudents();
+
+  } catch (error) {
+
+    alert(
+      error.response?.data?.message ||
+      "Failed to update student status."
+    );
+
+  }
+
+}
+
 const loadDrives = async () => {
   try {
     const response = await api.get("/admin/drives");
@@ -456,6 +582,79 @@ function viewResume(studentId) {
     `http://localhost:5000/api/admin/resume/${studentId}`,
     "_blank"
   );
+
+}
+
+async function exportStudents() {
+  try {
+    exporting.value = true;
+
+    const response = await api.post("/admin/export-students");
+
+    successMessage.value = response.data.message;
+    exportCompleted.value = true;
+
+    setTimeout(() => {
+      successMessage.value = "";
+    }, 3000);
+  } catch (error) {
+    console.error(error);
+
+    successMessage.value = "Export failed!";
+  } finally {
+    exporting.value = false;
+  }
+}
+async function downloadStudents() {
+  try {
+    window.open(
+      "http://127.0.0.1:5000/api/admin/download-students",
+      "_blank"
+    );
+  } catch (error) {
+    console.error(error);
+    alert("Download failed!");
+  }
+}
+
+async function runDailyReminder() {
+  try {
+    const response = await api.post("/admin/daily-reminder");
+
+    successMessage.value = response.data.message;
+
+    setTimeout(() => {
+      successMessage.value = "";
+    }, 3000);
+
+  } catch (error) {
+    console.error(error);
+    successMessage.value = "Failed to start reminder!";
+  }
+}
+
+async function runMonthlyReport() {
+
+  try {
+
+    const response = await api.post(
+      "/admin/monthly-report"
+    );
+
+    successMessage.value = response.data.message;
+
+    setTimeout(() => {
+      successMessage.value = "";
+    }, 3000);
+
+  } catch (error) {
+
+    alert(
+      error.response?.data?.message ||
+      "Monthly report failed."
+    );
+
+  }
 
 }
 
