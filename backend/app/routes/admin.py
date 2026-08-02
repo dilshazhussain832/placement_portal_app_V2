@@ -198,6 +198,43 @@ def get_all_drives():
 
     return jsonify(result)
 
+@admin.route("/applications", methods=["GET"])
+def get_all_applications():
+
+    if session.get("role") != "admin":
+        return jsonify({"message": "Unauthorized"}), 401
+
+    applications = Application.query.all()
+
+    result = []
+
+    for application in applications:
+
+        student = Student.query.get(application.student_id)
+        drive = PlacementDrive.query.get(application.drive_id)
+
+        company_name = "N/A"
+        job_title = "N/A"
+
+        if drive:
+            company = Company.query.get(drive.company_id)
+
+            if company:
+                company_name = company.company_name
+
+            job_title = drive.job_title
+
+        result.append({
+            "id": application.id,
+            "student_name": student.full_name if student else "N/A",
+            "company_name": company_name,
+            "job_title": job_title,
+            "status": application.status,
+            "application_date": str(application.application_date)
+        })
+
+    return jsonify(result)
+
 @admin.route("/drive/<int:drive_id>/approve", methods=["PUT"])
 def approve_drive(drive_id):
 

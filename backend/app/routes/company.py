@@ -291,6 +291,85 @@ def shortlist_applicant(application_id):
         "message": "Applicant shortlisted successfully."
     })
 
+@company.route("/application/<int:application_id>/select", methods=["PUT"])
+def select_applicant(application_id):
+
+    if session.get("role") != "company":
+        return jsonify({"message": "Unauthorized"}), 401
+
+    application = Application.query.get(application_id)
+
+    if not application:
+        return jsonify({"message": "Application not found"}), 404
+
+    drive = PlacementDrive.query.get(application.drive_id)
+
+    company = Company.query.filter_by(
+        user_id=session["user_id"]
+    ).first()
+
+    if drive.company_id != company.id:
+        return jsonify({"message": "Unauthorized"}), 403
+
+    if application.status != "Shortlisted":
+        return jsonify({
+            "message": "Only shortlisted applicants can be selected."
+        }), 400
+
+    application.status = "Selected"
+
+    db.session.commit()
+
+    return jsonify({
+        "message": "Applicant selected successfully."
+    })
+
+@company.route("/application/<int:application_id>/schedule-interview", methods=["PUT"])
+def schedule_interview(application_id):
+
+    if session.get("role") != "company":
+        return jsonify({"message": "Unauthorized"}), 401
+
+    application = Application.query.get(application_id)
+
+    if not application:
+        return jsonify({"message": "Application not found"}), 404
+
+    drive = PlacementDrive.query.get(application.drive_id)
+
+    company = Company.query.filter_by(
+        user_id=session["user_id"]
+    ).first()
+
+    if drive.company_id != company.id:
+        return jsonify({"message": "Unauthorized"}), 403
+
+    if application.status != "Shortlisted":
+        return jsonify({
+            "message": "Only shortlisted applicants can be scheduled."
+        }), 400
+
+    data = request.get_json()
+
+    application.interview_date = datetime.strptime(
+        data["interview_date"],
+        "%Y-%m-%d"
+    ).date()
+
+    application.interview_time = datetime.strptime(
+        data["interview_time"],
+        "%H:%M"
+    ).time()
+
+    application.interview_mode = data["interview_mode"]
+    application.interview_location = data["interview_location"]
+
+    db.session.commit()
+
+    return jsonify({
+        "message": "Interview scheduled successfully."
+    })
+
 @company.route("/application/<int:application_id>/reject", methods=["PUT"])
 def reject_applicant(application_id):
 
@@ -311,7 +390,7 @@ def reject_applicant(application_id):
     if drive.company_id != company.id:
         return jsonify({"message": "Unauthorized"}), 403
 
-    if application.status != "Applied":
+    if application.status not in ["Applied", "Shortlisted"]:
         return jsonify({
             "message": "Final decision has already been made."
         }), 400

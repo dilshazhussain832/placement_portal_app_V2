@@ -117,7 +117,11 @@ def get_my_applications():
             "company_name": company.company_name,
             "job_title": drive.job_title,
             "application_date": str(application.application_date.date()),
-            "status": application.status
+            "status": application.status,
+            "interview_date": application.interview_date,
+            "interview_time": str(application.interview_time) if application.interview_time else None,
+            "interview_mode": application.interview_mode,
+            "interview_location": application.interview_location,
         })
 
     return jsonify(result)

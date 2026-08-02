@@ -6,11 +6,20 @@ import StudentDashboard from "../views/StudentDashboard.vue";
 import CompanyDashboard from "../views/CompanyDashboard.vue";
 import StudentRegister from "../views/StudentRegister.vue";
 import CompanyRegister from "../views/CompanyRegister.vue";
+import HomePage from "../views/HomePage.vue";
 
 const routes = [
   {
-    path: "/",
+  path: "/",
+  redirect: "/home",
+  },
+  {
+    path: "/login",
     component: LoginView,
+  },
+  {
+    path: "/home",
+    component: HomePage,
   },
   {
     path: "/student-register",

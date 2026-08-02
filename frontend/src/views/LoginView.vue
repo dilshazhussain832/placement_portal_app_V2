@@ -1,55 +1,100 @@
 <template>
-  <div class="container vh-100 d-flex justify-content-center align-items-center">
-    <div class="card shadow p-4" style="width: 400px">
+  <div class="login-wrapper min-vh-100 d-flex justify-content-center align-items-center py-5">
+    <div class="container">
+      <div class="row justify-content-center">
+        <div class="col-12 col-sm-10 col-md-8 col-lg-5 col-xl-4">
+          
+          <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+            <!-- Header Accent Bar -->
+            <div class="bg-primary py-1"></div>
 
-      <h2 class="text-center mb-2">Placement Portal</h2>
-      <p class="text-center text-muted mb-4">
-        IIT Madras Placement Portal
-      </p>
+            <div class="card-body p-4 p-sm-5">
+              
+              <!-- Brand Header -->
+              <div class="text-center mb-4">
+                <div class="brand-badge bg-primary-subtle text-primary mb-3 mx-auto">
+                  <i class="bi bi-mortarboard-fill fs-3"></i>
+                </div>
+                <h2 class="fw-bold text-dark h3 mb-1">Placement Portal</h2>
+                <p class="text-secondary small mb-0">
+                  IIT Madras Placement Portal
+                </p>
+              </div>
 
-      <div class="mb-3">
-        <label class="form-label">Email</label>
-        <input
-          type="email"
-          class="form-control"
-          v-model="email"
-          placeholder="Enter email"
-        >
+              <!-- Form Inputs -->
+              <div class="mb-3">
+                <label class="form-label fw-semibold text-secondary small">Email Address</label>
+                <div class="input-group">
+                  <span class="input-group-text bg-light border-end-0 text-muted">
+                    <i class="bi bi-envelope"></i>
+                  </span>
+                  <input
+                    type="email"
+                    class="form-control bg-light border-start-0 ps-0"
+                    v-model="email"
+                    placeholder="Enter email"
+                  />
+                </div>
+              </div>
+
+              <div class="mb-4">
+                <label class="form-label fw-semibold text-secondary small">Password</label>
+                <div class="input-group">
+                  <span class="input-group-text bg-light border-end-0 text-muted">
+                    <i class="bi bi-lock"></i>
+                  </span>
+                  <input
+                    type="password"
+                    class="form-control bg-light border-start-0 ps-0"
+                    v-model="password"
+                    placeholder="Enter password"
+                  />
+                </div>
+              </div>
+
+              <!-- Login Button -->
+              <button
+                class="btn btn-primary w-100 py-2-5 mb-4 fw-semibold rounded-3 shadow-sm"
+                @click="login"
+              >
+                <i class="bi bi-box-arrow-in-right me-1"></i> Login
+              </button>
+
+              <!-- Divider -->
+              <div class="position-relative text-center my-3">
+                <hr class="text-secondary opacity-25" />
+                <span class="position-absolute top-50 start-50 translate-middle bg-white px-3 text-muted small fw-medium">
+                  Don't have an account?
+                </span>
+              </div>
+
+              <!-- Registration Links -->
+              <div class="d-grid gap-2 pt-2">
+                <button
+                  class="btn btn-outline-success py-2 fw-medium rounded-3"
+                  @click="router.push('/student-register')"
+                >
+                  <i class="bi bi-person-plus me-1"></i> Student Registration
+                </button>
+
+                <button
+                  class="btn btn-outline-secondary py-2 fw-medium rounded-3"
+                  @click="router.push('/company-register')"
+                >
+                  <i class="bi bi-building-add me-1"></i> Company Registration
+                </button>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Bottom Branding -->
+          <p class="text-center text-secondary small mt-4 mb-0">
+            © 2026 Placement Portal • IIT Madras BS Degree
+          </p>
+
+        </div>
       </div>
-
-      <div class="mb-3">
-        <label class="form-label">Password</label>
-        <input
-          type="password"
-          class="form-control"
-          v-model="password"
-          placeholder="Enter password"
-        >
-      </div>
-
-      <button
-        class="btn btn-primary w-100 mb-3"
-        @click="login"
-      >
-        Login
-      </button>
-
-      <div class="d-grid gap-2">
-        <button
-          class="btn btn-outline-success"
-          @click="router.push('/student-register')"
-        >
-          Student Registration
-        </button>
-
-        <button
-          class="btn btn-outline-secondary"
-          @click="router.push('/company-register')"
-        >
-          Company Registration
-        </button>
-      </div>
-
     </div>
   </div>
 </template>
@@ -84,3 +129,45 @@ async function login() {
   }
 }
 </script>
+
+<style scoped>
+.login-wrapper {
+  background: radial-gradient(circle at 50% 10%, rgba(37, 99, 235, 0.08) 0%, rgba(248, 250, 252, 1) 70%);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+.brand-badge {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.input-group-text {
+  border-color: #dee2e6;
+}
+
+.form-control {
+  border-color: #dee2e6;
+  font-size: 0.95rem;
+}
+
+.form-control:focus {
+  background-color: #ffffff !important;
+  box-shadow: none;
+  border-color: #2563eb;
+}
+
+.input-group:focus-within .input-group-text {
+  background-color: #ffffff !important;
+  border-color: #2563eb;
+  color: #2563eb !important;
+}
+
+.py-2-5 {
+  padding-top: 0.65rem;
+  padding-bottom: 0.65rem;
+}
+</style>
