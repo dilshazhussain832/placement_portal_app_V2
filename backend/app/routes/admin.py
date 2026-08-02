@@ -106,12 +106,13 @@ def toggle_company_status(company_id):
         return jsonify({"message": "Company not found"}), 404
 
     company.user.is_active = not company.user.is_active
+    company.is_active = company.user.is_active
 
     db.session.commit()
 
     return jsonify({
         "message": "Company status updated successfully.",
-        "is_active": company.user.is_active
+        "is_active": company.is_active
     }), 200
 
 @admin.route("/company/<int:company_id>/approve", methods=["PUT"])
